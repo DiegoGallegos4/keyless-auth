@@ -64,10 +64,14 @@ func main() {
 
 	router := mux.NewRouter()
 
+	// credentials
 	router.HandleFunc("/credentials/{credential}", credentialsHandler.GetWalletByCredential).Methods("GET")
 	router.HandleFunc("/credentials", credentialsHandler.GenerateCredential).Methods("POST")
+	router.HandleFunc("/merkle-root", credentialsHandler.GetMerkleRoot).Methods("GET")
+	router.HandleFunc("/merkle-proof/{credential}", credentialsHandler.GenerateMerkleProof).Methods("GET")
+	// zk proof
 	router.HandleFunc("/proof", proofHandler.GenerateProof).Methods("POST")
-
+	// auth
 	router.HandleFunc("/auth/google/login", googleHandler.HandleGoogleLogin).Methods("GET")
 	router.HandleFunc("/auth/google/callback", googleHandler.HandleGoogleCallback).Methods("GET")
 

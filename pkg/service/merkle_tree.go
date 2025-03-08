@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 
 	"keyless-auth/repository"
+	"log"
 
 	"github.com/wealdtech/go-merkletree"
 	"github.com/wealdtech/go-merkletree/keccak256"
@@ -71,6 +72,7 @@ func (s *MerkleTreeService) AddNodeToTree(address, newCredential string) (*merkl
 
 	exists, err := s.credRepo.Exists(hex.EncodeToString(hashedCred))
 	if err != nil {
+		log.Printf("Failed to generate merkle proof: %v", err)
 		return nil, nil, fmt.Errorf("failed to check for duplicates: %w", err)
 	}
 	if exists {

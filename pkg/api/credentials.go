@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gorilla/mux"
+	"github.com/wealdtech/go-merkletree"
 )
 
 type CredentialRequest struct {
@@ -20,8 +22,16 @@ type CredentialRequest struct {
 }
 
 type CredentialResponse struct {
-	WalletAddress string `json:"wallet_address"`
 	MerkleRoot    string `json:"merkle_root"`
+}
+
+type MerkleRootResponse struct {
+	MerkleRoot string `json:"merkle_root"`
+	NumLeaves  int    `json:"num_leaves"`
+}
+
+type MerkleProofResponse struct {
+	Proof *merkletree.Proof `json:"proof"`
 }
 
 type CredentialsHandler struct {
@@ -38,7 +48,32 @@ func NewCredentialsHandler(credRepo *repository.CredentialsRepository, walletRep
 	}
 }
 
-// generate wallet address
+func (h *CredentialsHandler) GetMerkleRoot(w http.ResponseWriter, r *http.Request) {
+	tree, numLeaves, err := h.merkleTree.GetMerkleTree()
+	if err != nil {
+		http.Error(w, "Failed to get merkle root", http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(MerkleRootResponse{
+		MerkleRoot: "0x" + hex.EncodeToString(tree.Root()),
+		NumLeaves:  numLeaves,
+	})
+}
+
+func (h *CredentialsHandler) GenerateMerkleProof(w http.ResponseWriter, r *http.Request) {
+	credential := mux.Vars(r)["credential"]
+
+	proof, err := h.merkleTree.GenerateMerkleProof(credential)
+	if err != nil {
+		http.Error(w, "Failed to generate merkle proof", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(MerkleProofResponse{
+		Proof: proof,
+	})
+}
+
 func GenerateWalletAddress() (string, []byte, error) {
 	privKey, err := crypto.GenerateKey()
 	if err != nil {
@@ -112,5 +147,5 @@ func (h *CredentialsHandler) GetWalletIfExists(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	json.NewEncoder(w).Encode(CredentialResponse{WalletAddress: wallet.Address, MerkleRoot: wallet.MerkleRoot})
+	json.NewEncoder(w).Encode(CredentialResponse{MerkleRoot: wallet.MerkleRoot})
 }

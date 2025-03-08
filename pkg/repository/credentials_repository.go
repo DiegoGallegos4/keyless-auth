@@ -29,10 +29,10 @@ func (cred *CredentialsRepository) SaveCredential(credential string, address str
 	}
 
 	// Add leaf to redis list (for ordered retrieval)
-	// if err := cred.db.Client.RPush(ctx, fmt.Sprintf("merkle:%s:credentials:set", address), credential).Err(); err != nil {
-	// 	log.Printf("Failed to add credential to redis list: %v", err)
-	// 	return err
-	// }
+	if err := cred.db.Client.RPush(ctx, fmt.Sprintf("merkle:%s:credentials:set", address), credential).Err(); err != nil {
+		log.Printf("Failed to add credential to redis list: %v", err)
+		return err
+	}
 	return nil
 }
 
