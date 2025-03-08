@@ -1,12 +1,13 @@
 package api
 
 import (
-	"bytes"
 	"encoding/json"
 	"keyless-auth/circuit"
 	"keyless-auth/domain"
 	"keyless-auth/repository"
 	"net/http"
+
+	"github.com/consensys/gnark/backend/groth16"
 )
 
 type ProofRequest struct {
@@ -17,7 +18,7 @@ type ProofRequest struct {
 }
 
 type ProofResponse struct {
-	Proof []byte `json:"proof"`
+	Proof *groth16.Proof `json:"proof"`
 }
 
 type ProofHandler struct {
@@ -37,13 +38,16 @@ func (h *ProofHandler) GenerateProof(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	proof, err := circuit.CompileCircuit(req)
+	proof, err := circuit.CompileCircuit(domain.Proof{
+		Leaf:      req.Leaf,
+		Root:      req.Root,
+		Siblings:  req.Siblings,
+		Positions: req.Positions,
+	})
 	if err != nil {
 		http.Error(w, "Failed to compile circuit", http.StatusInternalServerError)
 		return
 	}
 
-	var proofBytes []byte
-	proof.WriteTo(bytes.NewBuffer(proofBytes))
-	json.NewEncoder(w).Encode(ProofResponse{Proof: proofBytes})
+	json.NewEncoder(w).Encode(ProofResponse{Proof: proof})
 }
