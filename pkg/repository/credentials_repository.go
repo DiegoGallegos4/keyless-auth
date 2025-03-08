@@ -9,6 +9,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"keyless-auth/storage"
+	"log"
 )
 
 type CredentialsRepository struct {
@@ -23,13 +24,15 @@ func (cred *CredentialsRepository) SaveCredential(credential string, address str
 	ctx := context.Background()
 	// Add leaf to redis set (for fast membership check)
 	if err := cred.db.Client.SAdd(ctx, fmt.Sprintf("merkle:%s:credentials:set", address), credential).Err(); err != nil {
+		log.Printf("Failed to add credential to redis set: %v", err)
 		return err
 	}
 
 	// Add leaf to redis list (for ordered retrieval)
-	if err := cred.db.Client.RPush(ctx, fmt.Sprintf("merkle:%s:credentials:set", address), credential).Err(); err != nil {
-		return err
-	}
+	// if err := cred.db.Client.RPush(ctx, fmt.Sprintf("merkle:%s:credentials:set", address), credential).Err(); err != nil {
+	// 	log.Printf("Failed to add credential to redis list: %v", err)
+	// 	return err
+	// }
 	return nil
 }
 

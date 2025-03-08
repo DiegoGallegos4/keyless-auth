@@ -8,6 +8,7 @@ import (
 
 	"keyless-auth/repository"
 	"keyless-auth/service"
+	"log"
 	"net/http"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -68,18 +69,11 @@ func (h *CredentialsHandler) GenerateCredential(w http.ResponseWriter, r *http.R
 	}
 
 	if err := h.credRepo.AddNodeToRoot(context.Background(), root.String(), node); err != nil {
+		log.Printf("Failed to save credential: %v", err)
 		http.Error(w, "Failed to save credential", http.StatusInternalServerError)
 		return
 	}
 
-	walletAddress := ""
-
-	if len(strings.TrimSpace(req.WalletAddress)) == 0 {
-		walletAddress, _, err = GenerateWalletAddress()
-		if err != nil {
-			http.Error(w, "Failed to generate wallet address", http.StatusInternalServerError)
-			return
-		}
 	// generate wallet address
 	walletAddress, privKey, err := GenerateWalletAddress()
 	if err != nil {
@@ -89,12 +83,12 @@ func (h *CredentialsHandler) GenerateCredential(w http.ResponseWriter, r *http.R
 
 	// store wallet
 	if err := h.walletRepo.Save(walletAddress, privKey, req.HashedCredential); err != nil {
+		log.Printf("Failed to save wallet: %v", err)
 		http.Error(w, "Failed to save wallet", http.StatusInternalServerError)
 		return
 	}
 
-	json.NewEncoder(w).Encode(CredentialResponse{WalletAddress: walletAddress,
-		MerkleRoot: root.String()})
+	json.NewEncoder(w).Encode(CredentialResponse{MerkleRoot: root.String()})
 }
 
 func (h *CredentialsHandler) GetWalletByCredential(w http.ResponseWriter, r *http.Request) {
