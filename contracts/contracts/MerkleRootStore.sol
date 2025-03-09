@@ -7,7 +7,6 @@ contract MerkleRootStore {
     event MerkleRootUpdated(bytes32 newMerkleRoot);
 
     function updateMerkleRoot(bytes32 newRoot) public {
-        // verified before updating
         merkleRoot = newRoot;
         emit MerkleRootUpdated(newRoot);
     }
