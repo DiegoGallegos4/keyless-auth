@@ -5,13 +5,13 @@ go 1.23.4
 require (
 	github.com/consensys/gnark v0.12.0
 	github.com/consensys/gnark-crypto v0.15.0
+	github.com/google/uuid v1.6.0
 	github.com/redis/go-redis/v9 v9.7.1
 )
 
 require (
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/holiman/uint256 v1.3.2 // indirect
 )
 

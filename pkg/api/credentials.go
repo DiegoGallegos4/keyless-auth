@@ -4,17 +4,15 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
-	"net/http"
-	"strings"
-
-	"keyless-auth/repository"
-	"keyless-auth/service"
 	"log"
 	"net/http"
 
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gorilla/mux"
 	"github.com/wealdtech/go-merkletree"
+
+	"keyless-auth/repository"
+	"keyless-auth/service"
 )
 
 type CredentialRequest struct {
@@ -22,7 +20,9 @@ type CredentialRequest struct {
 }
 
 type CredentialResponse struct {
-	MerkleRoot    string `json:"merkle_root"`
+	MerkleRoot    string            `json:"merkle_root"`
+	WalletAddress string            `json:"wallet_address"`
+	Proof         *merkletree.Proof `json:"proof"`
 }
 
 type MerkleRootResponse struct {
@@ -62,10 +62,18 @@ func (h *CredentialsHandler) GetMerkleRoot(w http.ResponseWriter, r *http.Reques
 
 func (h *CredentialsHandler) GenerateMerkleProof(w http.ResponseWriter, r *http.Request) {
 	credential := mux.Vars(r)["credential"]
-
-	proof, err := h.merkleTree.GenerateMerkleProof(credential)
+	// TODO: with existing credential
+	tree, node, proof, err := h.merkleTree.WithNewCredential(credential)
 	if err != nil {
-		http.Error(w, "Failed to generate merkle proof", http.StatusInternalServerError)
+		http.Error(w, "failed to generate merkle proof", http.StatusInternalServerError)
+		return
+	}
+
+	// "SaveCredentialAndNode" if you want to store the root. We can also store node only.
+	err = h.credRepo.SaveCredentialAndNode(context.Background(), credential, hex.EncodeToString(tree.Root()), node)
+	if err != nil {
+		log.Println("failed to store credential and node: ", err)
+		http.Error(w, "failed to store credential and node", http.StatusInternalServerError)
 		return
 	}
 
@@ -97,18 +105,6 @@ func (h *CredentialsHandler) GenerateCredential(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	root, node, err := h.merkleTree.AddNodeToTree(req.WalletAddress, req.HashedCredential)
-	if err != nil {
-		http.Error(w, "Failed to generate merkle tree root", http.StatusInternalServerError)
-		return
-	}
-
-	if err := h.credRepo.AddNodeToRoot(context.Background(), root.String(), node); err != nil {
-		log.Printf("Failed to save credential: %v", err)
-		http.Error(w, "Failed to save credential", http.StatusInternalServerError)
-		return
-	}
-
 	// generate wallet address
 	walletAddress, privKey, err := GenerateWalletAddress()
 	if err != nil {
@@ -116,14 +112,32 @@ func (h *CredentialsHandler) GenerateCredential(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	tree, node, proof, err := h.merkleTree.WithNewCredential(req.HashedCredential)
+	if err != nil {
+		http.Error(w, "Failed to generate merkle tree root", http.StatusInternalServerError)
+		return
+	}
+
+	// "SaveCredentialAndNode" if you want to store the root. We can also store node only.
+	err = h.credRepo.SaveCredentialAndNode(context.Background(), req.HashedCredential, hex.EncodeToString(tree.Root()), node)
+	if err != nil {
+		log.Println("failed to store credential and node: ", err)
+		http.Error(w, "failed to store credential and node", http.StatusInternalServerError)
+		return
+	}
+
 	// store wallet
-	if err := h.walletRepo.Save(walletAddress, privKey, req.HashedCredential); err != nil {
+	if err := h.walletRepo.Save(walletAddress, privKey, req.HashedCredential, hex.EncodeToString(tree.Root())); err != nil {
 		log.Printf("Failed to save wallet: %v", err)
 		http.Error(w, "Failed to save wallet", http.StatusInternalServerError)
 		return
 	}
 
-	json.NewEncoder(w).Encode(CredentialResponse{MerkleRoot: root.String()})
+	json.NewEncoder(w).Encode(CredentialResponse{
+		MerkleRoot:    hex.EncodeToString(tree.Root()),
+		WalletAddress: walletAddress,
+		Proof:         proof,
+	})
 }
 
 func (h *CredentialsHandler) GetWalletByCredential(w http.ResponseWriter, r *http.Request) {
@@ -149,3 +163,8 @@ func (h *CredentialsHandler) GetWalletIfExists(w http.ResponseWriter, r *http.Re
 
 	json.NewEncoder(w).Encode(CredentialResponse{MerkleRoot: wallet.MerkleRoot})
 }
+
+// Register with a credential
+// We generate a wallet
+// We generate merkle tree -> proof
+// merkle tree/proof

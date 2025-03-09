@@ -3,21 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
-
 	"log"
-	"net/http"
-	"os"
-
-	"keyless-auth/api"
-	"keyless-auth/repository"
-	"keyless-auth/storage"
-	"log"
-
 	"net/http"
 	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/redis/go-redis/v9"
+
+	"keyless-auth/api"
+	"keyless-auth/repository"
+	"keyless-auth/storage"
 )
 
 var (

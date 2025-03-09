@@ -2,14 +2,11 @@ package repository
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
+	"log"
 	"time"
 
 	"keyless-auth/domain"
 	"keyless-auth/storage"
-	"log"
-	"time"
 )
 
 type WalletRepository struct {

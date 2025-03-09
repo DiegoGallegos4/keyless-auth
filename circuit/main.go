@@ -1,10 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark/backend/groth16"
@@ -78,6 +81,51 @@ func GenerateGroth16() error {
 		return err
 	}
 	{
+		rootDir, err := findRootDir()
+		if err != nil {
+			return fmt.Errorf("failed to find root directory: %w", err)
+		}
+		outputDir := filepath.Join(rootDir, "jsonK")
+		err = os.MkdirAll(outputDir, 0755)
+		if err != nil {
+			return fmt.Errorf("failed to create output directory: %w", err)
+		}
+
+		pubWitness := vk.NbPublicWitness()
+		// Format and save verification key as JSON
+
+		pw, err := json.Marshal(pubWitness)
+		if err != nil {
+			return fmt.Errorf("failed to marshal verification key to JSON: %w", err)
+		}s
+
+		err = os.WriteFile(filepath.Join(outputDir, "pw.json"), pw, 0644)
+		if err != nil {
+			return fmt.Errorf("failed to write verification key JSON: %w", err)
+		}
+
+		vkJSON, err := json.MarshalIndent(vk, "", "  ")
+		if err != nil {
+			return fmt.Errorf("failed to marshal verification key to JSON: %w", err)
+		}
+
+		err = os.WriteFile(filepath.Join(outputDir, "vk.json"), vkJSON, 0644)
+		if err != nil {
+			return fmt.Errorf("failed to write verification key JSON: %w", err)
+		}
+
+		proofJSON, err := json.MarshalIndent(pk, "", "  ")
+		if err != nil {
+			return fmt.Errorf("failed to marshal proof to JSON: %w", err)
+		}
+
+		err = os.WriteFile(filepath.Join(outputDir, "pk.json"), proofJSON, 0644)
+		if err != nil {
+			return fmt.Errorf("failed to write proof JSON: %w", err)
+		}
+
+	}
+	{
 		f, err := os.Create("mt.g16.vk")
 		if err != nil {
 			return err
@@ -97,7 +145,6 @@ func GenerateGroth16() error {
 			return err
 		}
 	}
-
 	{
 		f, err := os.Create("contract_mt.g16.sol")
 		if err != nil {
@@ -166,5 +213,30 @@ func main() {
 		}
 	} else {
 		log.Fatalf("Invalid argument: %v", os.Args[1])
+	}
+}
+
+func findRootDir() (string, error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	for {
+		// Check for common project root markers
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir, nil
+		}
+		if _, err := os.Stat(filepath.Join(dir, ".git")); err == nil {
+			return dir, nil
+		}
+
+		// Move up one directory
+		parentDir := filepath.Dir(dir)
+		if parentDir == dir {
+			// We've reached the root of the file system
+			return "", fmt.Errorf("could not find project root directory")
+		}
+		dir = parentDir
 	}
 }
