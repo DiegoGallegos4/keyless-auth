@@ -80,6 +80,7 @@ contract Verifier {
     uint256 constant PUB_0_X = 20182520203722648327153719369299349354159104803455260384996556954424379082799;
     uint256 constant PUB_0_Y = 20147972557657763825062271535452075002391494313609045771327021337392482554794;
 
+
     /// Negation in Fp.
     /// @notice Returns a number x such that a + x = 0 in Fp.
     /// @notice The input does not need to be reduced.

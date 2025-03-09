@@ -38,7 +38,9 @@ This project is a simple implementation of a keyless login system. It is a proof
 
 ---
 
+
 ### 4. Login Flow
+
 1. **Enter Basic Credentials** (app password, username, or passkey)
 2. **Connect** to:
    - DApps (via Web3)  
@@ -51,6 +53,7 @@ This project is a simple implementation of a keyless login system. It is a proof
 ---
 
 ### 5. Verification Flow
+
 1. **Prove Relationship**  
    - Show that a child key belongs to a master key using BLS or zero-knowledge
 2. **Transmit Proof**  
