@@ -1,13 +1,17 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"keyless-auth/circuit"
 	"keyless-auth/domain"
 	"keyless-auth/repository"
 	"net/http"
 
+	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark/backend/groth16"
+	"github.com/consensys/gnark/frontend"
+	"github.com/consensys/gnark/frontend/cs/r1cs"
 )
 
 type ProofRequest struct {

@@ -10,6 +10,7 @@ import (
 	"keyless-auth/api"
 	"keyless-auth/repository"
 	"keyless-auth/storage"
+	"log"
 
 	"github.com/gorilla/mux"
 	"github.com/redis/go-redis/v9"

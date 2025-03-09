@@ -8,6 +8,7 @@ import (
 
 	"keyless-auth/repository"
 	"keyless-auth/service"
+	"net/http"
 
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gorilla/mux"
@@ -15,7 +16,6 @@ import (
 
 type CredentialRequest struct {
 	HashedCredential string `json:"hashed_credential"`
-	WalletAddress    string `json:"wallet_address"`
 }
 
 type CredentialResponse struct {
@@ -80,15 +80,15 @@ func (h *CredentialsHandler) GenerateCredential(w http.ResponseWriter, r *http.R
 			http.Error(w, "Failed to generate wallet address", http.StatusInternalServerError)
 			return
 		}
+	// generate wallet address
+	walletAddress, privKey, err := GenerateWalletAddress()
+	if err != nil {
+		http.Error(w, "Failed to generate wallet address", http.StatusInternalServerError)
+		return
 	}
 
-	// store wallet - // TODO: check if wallet exists
-	// if err := h.walletRepo.Save(walletAddress, nil, req.HashedCredential, root.String()); err != nil {
-	// 	http.Error(w, "Failed to save wallet", http.StatusInternalServerError)
-	// 	return
-	// }
-
-	if err = h.credRepo.SetWalletForNode(context.Background(), req.WalletAddress, root.String()); err != nil {
+	// store wallet
+	if err := h.walletRepo.Save(walletAddress, privKey, req.HashedCredential); err != nil {
 		http.Error(w, "Failed to save wallet", http.StatusInternalServerError)
 		return
 	}
@@ -106,7 +106,7 @@ func (h *CredentialsHandler) GetWalletByCredential(w http.ResponseWriter, r *htt
 		return
 	}
 
-	json.NewEncoder(w).Encode(CredentialResponse{WalletAddress: wallet.Address, MerkleRoot: wallet.MerkleRoot})
+	json.NewEncoder(w).Encode(CredentialResponse{MerkleRoot: wallet.MerkleRoot})
 }
 
 func (h *CredentialsHandler) GetWalletIfExists(w http.ResponseWriter, r *http.Request) {
