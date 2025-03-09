@@ -2,9 +2,12 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"time"
+
 	"keyless-auth/domain"
 	"keyless-auth/storage"
-	"time"
 )
 
 type WalletRepository struct {
@@ -15,13 +18,20 @@ func NewWalletRepository(db *storage.Redis) *WalletRepository {
 	return &WalletRepository{db: db}
 }
 
-func (r *WalletRepository) Save(address string, privKey []byte, credential string) error {
+func (r *WalletRepository) Save(address string, privKey []byte, credential string, merkleRoot string) error {
 	wallet := &domain.Wallet{
 		Address:    address,
 		PrivateKey: privKey,
 		Credential: credential,
+		MerkleRoot: merkleRoot,
 	}
-	return r.db.Save(context.Background(), storage.GenerateCacheKey("wallet", credential), wallet, time.Hour*24)
+
+	_wallet, err := json.Marshal(wallet)
+	if err != nil {
+		return fmt.Errorf("unable to marshal data for redis: %w", err)
+	}
+
+	return r.db.Save(context.Background(), storage.GenerateCacheKey("wallet", credential), _wallet, time.Hour*24)
 }
 
 func (r *WalletRepository) GetWalletByCredential(hashedCredential string) (*domain.Wallet, error) {
