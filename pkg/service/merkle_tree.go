@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+<<<<<<< HEAD
 	"errors"
 	"fmt"
 	"time"
@@ -12,6 +13,18 @@ import (
 	"github.com/wealdtech/go-merkletree/keccak256"
 
 	"keyless-auth/repository"
+=======
+	"encoding/hex"
+	"errors"
+	"fmt"
+
+	"github.com/google/uuid"
+
+	"keyless-auth/repository"
+
+	"github.com/wealdtech/go-merkletree"
+	"github.com/wealdtech/go-merkletree/keccak256"
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d
 )
 
 type MerkleTreeService struct {
@@ -24,6 +37,7 @@ func NewMerkleTreeService(credRepo *repository.CredentialsRepository) *MerkleTre
 	}
 }
 
+<<<<<<< HEAD
 // TODO
 // func (s *MerkleTreeService) GetMerkleTree() (*repository.MerkleNode, *merkletree.MerkleTree, error) {
 // 	obj, err := s.credRepo.GetGlobalMerkleObject()
@@ -40,10 +54,30 @@ func NewMerkleTreeService(credRepo *repository.CredentialsRepository) *MerkleTre
 func (s *MerkleTreeService) WithNewCredential(newCredential string) (*merkletree.MerkleTree, *repository.MerkleNode, *merkletree.Proof, error) {
 	if newCredential == "" {
 		return nil, nil, nil, errors.New("credential must not be empty")
+=======
+func (s *MerkleTreeService) GetRoot(wallet string) (*repository.MerkleNode, error) {
+	root, err := s.credRepo.GetLatestRoot(context.Background(), wallet)
+	if err != nil {
+		return nil, err
+	}
+
+	node, err := s.credRepo.GetLatestNode(context.Background(), root)
+	if err != nil {
+		return nil, err
+	}
+
+	return node, nil
+}
+
+func (s *MerkleTreeService) AddNodeToTree(address, newCredential string) (*merkletree.MerkleTree, *repository.MerkleNode, error) {
+	if address == "" || newCredential == "" {
+		return nil, nil, errors.New("address and credential must not be empty")
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d
 	}
 
 	ctx := context.Background()
 
+<<<<<<< HEAD
 	// TODO: hex and then encode to string before checking and storing
 	exists, err := s.credRepo.Exists(newCredential)
 	if err != nil {
@@ -91,11 +125,30 @@ func (s *MerkleTreeService) WithNewCredential(newCredential string) (*merkletree
 	tree, err := merkletree.NewUsing(data, keccak256.New(), []byte{})
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to build Merkle tree: %w", err)
+=======
+	existingCredentials, err := s.credRepo.GetCredentialsByWallet(ctx, address)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get existing credentials: %w", err)
+	}
+
+	hashedCred := hashCredential(newCredential)
+	data := make([][]byte, 0, len(existingCredentials)+1)
+
+	for _, cred := range existingCredentials {
+		data = append(data, []byte(cred))
+	}
+	data = append(data, hashedCred)
+
+	tree, err := merkletree.NewUsing(data, keccak256.New(), []byte{})
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to build Merkle tree: %w", err)
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d
 	}
 
 	proofIndex := uint64(len(data) - 1)
 	proof, err := tree.GenerateProof(data[proofIndex])
 	if err != nil {
+<<<<<<< HEAD
 		return nil, nil, nil, fmt.Errorf("failed to generate proof: %w", err)
 	}
 
@@ -155,6 +208,34 @@ func (s *MerkleTreeService) GetMerkleTree() (*merkletree.MerkleTree, int, error)
 
 	// return root
 	return tree, len(credentials), nil
+=======
+		return nil, nil, fmt.Errorf("failed to generate proof: %w", err)
+	}
+
+	exists, err := s.credRepo.Exists(hex.EncodeToString(hashedCred))
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to check for duplicates: %w", err)
+	}
+	if exists {
+		return nil, nil, errors.New("credential already exists")
+	}
+
+	newNode := &repository.MerkleNode{
+		ID:          uuid.New().String(),
+		NodeType:    repository.Credential,
+		Hash:        hex.EncodeToString(hashedCred),
+		ProofIndex:  proofIndex,
+		ProofHashes: proof.Hashes,
+		TreeRoot:    tree.Root(),
+	}
+
+	err = s.credRepo.AddNodeToRoot(ctx, address, newNode)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to update root and node: %w", err)
+	}
+
+	return tree, newNode, nil
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d
 }
 
 func hashCredential(cred string) []byte {

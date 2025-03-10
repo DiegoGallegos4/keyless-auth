@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+<<<<<<< HEAD
 	"fmt"
 	"log"
 	"net/http"
@@ -13,6 +14,19 @@ import (
 	"keyless-auth/api"
 	"keyless-auth/repository"
 	"keyless-auth/storage"
+=======
+    "fmt"
+    "log"
+    "net/http"
+    "os"
+
+    "keyless-auth/api"
+    "keyless-auth/repository"
+    "keyless-auth/storage"
+
+    "github.com/gorilla/mux"
+    "github.com/redis/go-redis/v9"
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d
 )
 
 var (
@@ -59,6 +73,7 @@ func main() {
 
 	router := mux.NewRouter()
 
+<<<<<<< HEAD
 	// credentials
 	router.HandleFunc("/credentials/{credential}", credentialsHandler.GetWalletByCredential).Methods("GET")
 	router.HandleFunc("/credentials", credentialsHandler.GenerateCredential).Methods("POST")
@@ -67,6 +82,12 @@ func main() {
 	// zk proof
 	router.HandleFunc("/proof", proofHandler.GenerateProof).Methods("POST")
 	// auth
+=======
+	router.HandleFunc("/credentials/{credential}", credentialsHandler.GetWalletByCredential).Methods("GET")
+	router.HandleFunc("/credentials", credentialsHandler.GenerateCredential).Methods("POST")
+	router.HandleFunc("/proof", proofHandler.GenerateProof).Methods("POST")
+
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d
 	router.HandleFunc("/auth/google/login", googleHandler.HandleGoogleLogin).Methods("GET")
 	router.HandleFunc("/auth/google/callback", googleHandler.HandleGoogleCallback).Methods("GET")
 

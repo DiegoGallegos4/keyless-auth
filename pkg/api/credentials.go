@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+<<<<<<< HEAD
 	"encoding/hex"
 	"encoding/json"
 	"log"
@@ -13,10 +14,22 @@ import (
 
 	"keyless-auth/repository"
 	"keyless-auth/service"
+=======
+	"encoding/json"
+	"net/http"
+	"strings"
+
+	"keyless-auth/repository"
+	"keyless-auth/service"
+
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/gorilla/mux"
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d
 )
 
 type CredentialRequest struct {
 	HashedCredential string `json:"hashed_credential"`
+<<<<<<< HEAD
 }
 
 type CredentialResponse struct {
@@ -32,6 +45,14 @@ type MerkleRootResponse struct {
 
 type MerkleProofResponse struct {
 	Proof *merkletree.Proof `json:"proof"`
+=======
+	WalletAddress    string `json:"wallet_address"`
+}
+
+type CredentialResponse struct {
+	WalletAddress string `json:"wallet_address"`
+	MerkleRoot    string `json:"merkle_root"`
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d
 }
 
 type CredentialsHandler struct {
@@ -48,6 +69,7 @@ func NewCredentialsHandler(credRepo *repository.CredentialsRepository, walletRep
 	}
 }
 
+<<<<<<< HEAD
 func (h *CredentialsHandler) GetMerkleRoot(w http.ResponseWriter, r *http.Request) {
 	tree, numLeaves, err := h.merkleTree.GetMerkleTree()
 	if err != nil {
@@ -82,6 +104,9 @@ func (h *CredentialsHandler) GenerateMerkleProof(w http.ResponseWriter, r *http.
 	})
 }
 
+=======
+// generate wallet address
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d
 func GenerateWalletAddress() (string, []byte, error) {
 	privKey, err := crypto.GenerateKey()
 	if err != nil {
@@ -105,6 +130,7 @@ func (h *CredentialsHandler) GenerateCredential(w http.ResponseWriter, r *http.R
 		return
 	}
 
+<<<<<<< HEAD
 	// generate wallet address
 	walletAddress, privKey, err := GenerateWalletAddress()
 	if err != nil {
@@ -113,11 +139,15 @@ func (h *CredentialsHandler) GenerateCredential(w http.ResponseWriter, r *http.R
 	}
 
 	tree, node, proof, err := h.merkleTree.WithNewCredential(req.HashedCredential)
+=======
+	root, node, err := h.merkleTree.AddNodeToTree(req.WalletAddress, req.HashedCredential)
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d
 	if err != nil {
 		http.Error(w, "Failed to generate merkle tree root", http.StatusInternalServerError)
 		return
 	}
 
+<<<<<<< HEAD
 	// "SaveCredentialAndNode" if you want to store the root. We can also store node only.
 	err = h.credRepo.SaveCredentialAndNode(context.Background(), req.HashedCredential, hex.EncodeToString(tree.Root()), node)
 	if err != nil {
@@ -129,15 +159,44 @@ func (h *CredentialsHandler) GenerateCredential(w http.ResponseWriter, r *http.R
 	// store wallet
 	if err := h.walletRepo.Save(walletAddress, privKey, req.HashedCredential, hex.EncodeToString(tree.Root())); err != nil {
 		log.Printf("Failed to save wallet: %v", err)
+=======
+	if err := h.credRepo.AddNodeToRoot(context.Background(), root.String(), node); err != nil {
+		http.Error(w, "Failed to save credential", http.StatusInternalServerError)
+		return
+	}
+
+	walletAddress := ""
+
+	if len(strings.TrimSpace(req.WalletAddress)) == 0 {
+		walletAddress, _, err = GenerateWalletAddress()
+		if err != nil {
+			http.Error(w, "Failed to generate wallet address", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// store wallet - // TODO: check if wallet exists
+	// if err := h.walletRepo.Save(walletAddress, nil, req.HashedCredential, root.String()); err != nil {
+	// 	http.Error(w, "Failed to save wallet", http.StatusInternalServerError)
+	// 	return
+	// }
+
+	if err = h.credRepo.SetWalletForNode(context.Background(), req.WalletAddress, root.String()); err != nil {
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d
 		http.Error(w, "Failed to save wallet", http.StatusInternalServerError)
 		return
 	}
 
+<<<<<<< HEAD
 	json.NewEncoder(w).Encode(CredentialResponse{
 		MerkleRoot:    hex.EncodeToString(tree.Root()),
 		WalletAddress: walletAddress,
 		Proof:         proof,
 	})
+=======
+	json.NewEncoder(w).Encode(CredentialResponse{WalletAddress: walletAddress,
+		MerkleRoot: root.String()})
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d
 }
 
 func (h *CredentialsHandler) GetWalletByCredential(w http.ResponseWriter, r *http.Request) {
@@ -149,7 +208,11 @@ func (h *CredentialsHandler) GetWalletByCredential(w http.ResponseWriter, r *htt
 		return
 	}
 
+<<<<<<< HEAD
 	json.NewEncoder(w).Encode(CredentialResponse{MerkleRoot: wallet.MerkleRoot})
+=======
+	json.NewEncoder(w).Encode(CredentialResponse{WalletAddress: wallet.Address, MerkleRoot: wallet.MerkleRoot})
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d
 }
 
 func (h *CredentialsHandler) GetWalletIfExists(w http.ResponseWriter, r *http.Request) {
@@ -161,6 +224,7 @@ func (h *CredentialsHandler) GetWalletIfExists(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+<<<<<<< HEAD
 	json.NewEncoder(w).Encode(CredentialResponse{MerkleRoot: wallet.MerkleRoot})
 }
 
@@ -168,3 +232,7 @@ func (h *CredentialsHandler) GetWalletIfExists(w http.ResponseWriter, r *http.Re
 // We generate a wallet
 // We generate merkle tree -> proof
 // merkle tree/proof
+=======
+	json.NewEncoder(w).Encode(CredentialResponse{WalletAddress: wallet.Address, MerkleRoot: wallet.MerkleRoot})
+}
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d

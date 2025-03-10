@@ -2,7 +2,12 @@ package repository
 
 import (
 	"context"
+<<<<<<< HEAD
 	"log"
+=======
+	"encoding/json"
+	"fmt"
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d
 	"time"
 
 	"keyless-auth/domain"
@@ -24,6 +29,7 @@ func (r *WalletRepository) Save(address string, privKey []byte, credential strin
 		Credential: credential,
 		MerkleRoot: merkleRoot,
 	}
+<<<<<<< HEAD
 	log.Printf("Saving wallet: %v", wallet)
 
 	serializedWallet, err := storage.Serialize(wallet)
@@ -38,12 +44,24 @@ func (r *WalletRepository) Save(address string, privKey []byte, credential strin
 		return err
 	}
 	return nil
+=======
+
+	_wallet, err := json.Marshal(wallet)
+	if err != nil {
+		return fmt.Errorf("unable to marshal data for redis: %w", err)
+	}
+
+	return r.db.Save(context.Background(), storage.GenerateCacheKey("wallet", credential), _wallet, time.Hour*24)
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d
 }
 
 func (r *WalletRepository) GetWalletByCredential(hashedCredential string) (*domain.Wallet, error) {
 	value, err := r.db.Get(context.Background(), storage.GenerateCacheKey("wallet", hashedCredential))
 	if err != nil {
+<<<<<<< HEAD
 		log.Printf("Failed to get wallet by credential: %v", err)
+=======
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d
 		return nil, err
 	}
 	var wallet domain.Wallet

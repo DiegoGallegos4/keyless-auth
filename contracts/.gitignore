@@ -23,4 +23,7 @@ env.json
 coverage.out
 data
 .log
+<<<<<<< HEAD
 .env
+=======
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d

@@ -3,8 +3,11 @@ package repository
 import (
 	"fmt"
 	"time"
+<<<<<<< HEAD
 
 	"github.com/wealdtech/go-merkletree"
+=======
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d
 )
 
 // wallet address is mapped to a root
@@ -24,6 +27,7 @@ const (
 
 // MerkleNode describes a single node in the Merkle tree.
 type MerkleNode struct {
+<<<<<<< HEAD
 	ID           string // e.g. a UUID
 	NodeType     NodeType
 	Hash         string // Hash of this leaf/node
@@ -33,6 +37,15 @@ type MerkleNode struct {
 	PrevRoot     []byte // Optional: the previous root
 	CreatedAt    time.Time
 	CredentialID string // which credential this node belongs to
+=======
+	ID          string
+	NodeType    NodeType
+	Hash        string   // Stores leaf hash
+	ProofIndex  uint64   // Original index in tree
+	ProofHashes [][]byte // Maintain binary format
+	TreeRoot    []byte   // Root reference
+	CreatedAt   time.Time
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d
 }
 
 var NodeTypeNames = map[NodeType]string{
@@ -48,6 +61,7 @@ func (t NodeType) String() string {
 	}
 	return fmt.Sprintf("Unknown NodeType (%d)", t)
 }
+<<<<<<< HEAD
 
 // -----------------TODO
 
@@ -64,3 +78,5 @@ func (o *GlobalMerkleObject) ToChildren() (*MerkleNode, *merkletree.MerkleTree, 
 func (o *GlobalMerkleObject) ToParent(*MerkleNode, *merkletree.MerkleTree, error) error {
 	return nil
 }
+=======
+>>>>>>> 483d9215152da2ad6883daaa0789698081fed34d
