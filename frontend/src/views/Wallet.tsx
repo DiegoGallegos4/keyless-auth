@@ -5,10 +5,12 @@ import NftGrid from '../components/NftGrid';
 import ActivityList from '../components/ActivityList';
 import '../css/Wallet.css';
 import { NetworkIcon } from '@web3icons/react';
-
+import { UserInfoState } from '../interface';
+import { useAppSelector } from '../redux/hooks';
 const Wallet: React.FC = () => {
   const [activeTab, setActiveTab] = useState('tokens');
   const [showNetworkDropdown, setShowNetworkDropdown] = useState(false);
+  const userInfo: UserInfoState = useAppSelector((state) => state.userInfo);
   const [selectedNetwork, setSelectedNetwork] = useState({
     name: 'Ethereum',
     logo: <NetworkIcon id='ethereum' size={32} variant="branded"/>,
@@ -48,6 +50,11 @@ const Wallet: React.FC = () => {
     setShowNetworkDropdown(false);
   };
 
+  const formatAddress = (address: string) => {
+    if (!address) return '';
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
   return (
     <>
     <Header/>
@@ -78,7 +85,7 @@ const Wallet: React.FC = () => {
             )}
           </div>
         <div className="address-container">
-          <span className="address">0x1234...5678</span>
+        <span className="address">{formatAddress(userInfo.walletAddress)}</span>
           <button className="copy-button">Copy</button>
         </div>
         <button className="send-button">Send</button>

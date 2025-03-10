@@ -110,6 +110,41 @@
     background: #fff;
     transition: 0.3s;
   }
+  .verify-proof-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+  }
+  
+  .verify-proof-btn:hover {
+    background-color: #45a049;
+  }
+  
+  .verify-proof-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+
+  .etherscan-link {
+    margin-left: 1rem;
+    color: #1a73e8;
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid #1a73e8;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+  }
+  
+  .etherscan-link:hover {
+    background-color: #1a73e8;
+    color: white;
+  }
   
   /* Responsive Styles */
   @media (max-width: 1024px) {

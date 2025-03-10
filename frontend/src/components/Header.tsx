@@ -1,8 +1,33 @@
 import React, { useState } from 'react';
 import '../css/Header.css';
-
+import {useAppSelector } from '../redux/hooks';
+import {UserInfoState} from '../interface';
+import { verifyProof } from '../util';
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [txHash, setTxHash] = useState<string | undefined>(undefined);
+  const obj:UserInfoState = useAppSelector((state) => state.userInfo);
+  console.log(obj)
+  const contractAddress = "";
+  const handleVerifyProof = async () => {
+    // TODO: Implement proof verification logic
+    if (!obj.proof || !obj.merkleRoot) {
+      alert('No proof available to verify');
+      return;
+    }
+    try {
+      // Add your proof verification logic here
+      const result=await verifyProof(contractAddress,obj.proof,obj.credential);
+      if(result.isValid){
+        setTxHash(result.txHash);
+        alert(`Proof verified successfully! View transaction on Etherscan: https://sepolia.etherscan.io/tx/${result.txHash}`);
+      }
+    } catch (error) {
+      console.error('Error verifying proof:', error);
+      setTxHash(undefined);
+    }
+  };
+
 
   return (
     <header className="header">
@@ -22,7 +47,23 @@ const Header: React.FC = () => {
         </nav>
 
         <div className="header-actions">
-          <button className="connect-wallet">Connect Wallet</button>
+        <button 
+            className="verify-proof-btn" 
+            onClick={handleVerifyProof}
+            disabled={!obj.proof}
+          >
+            Verify Proof
+          </button>
+          {txHash && (
+            <a 
+              href={`https://sepolia.etherscan.io/tx/${txHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="etherscan-link"
+            >
+              View on Etherscan
+            </a>
+          )}
           <button 
             className="mobile-menu-btn"
             onClick={() => setIsMenuOpen(!isMenuOpen)}

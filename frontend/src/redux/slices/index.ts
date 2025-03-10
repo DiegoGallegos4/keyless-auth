@@ -1,12 +1,11 @@
 import { createSlice,PayloadAction } from "@reduxjs/toolkit";
+import { UserInfoState } from "../../interface";
 
-interface UserInfoState {
-  walletAddress:string,
-  email:string,
-}
 const initialState:UserInfoState = {
     walletAddress:'',
-    email:'',
+    merkleRoot:'',
+    credential:'',
+    proof:''
 }
 
   const userInfoSlice = createSlice({
@@ -16,15 +15,21 @@ const initialState:UserInfoState = {
       setWalletAddress(state, action:PayloadAction<string>) {
         state.walletAddress = action.payload;
       },
-      setEmail(state, action:PayloadAction<string>) {
-        state.email = action.payload;
+      setMerkleRoot(state, action:PayloadAction<string>) {
+        state.merkleRoot = action.payload;
+      },
+      setCredential(state, action:PayloadAction<string>) {
+        state.credential = action.payload;
+      },
+      setProof(state, action:PayloadAction<string>) {
+        state.proof = action.payload;
       },
       resetAcInfo(state) {
         state.walletAddress = '';
-        state.email = '';
+        state.merkleRoot = '';
       },
     },
   });
   
-  export const { setWalletAddress, setEmail, resetAcInfo } = userInfoSlice.actions;
+  export const { setWalletAddress,setMerkleRoot,setCredential,setProof ,resetAcInfo } = userInfoSlice.actions;
   export default userInfoSlice.reducer;
