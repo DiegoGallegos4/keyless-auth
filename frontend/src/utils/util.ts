@@ -1,6 +1,7 @@
 import {ethers} from 'ethers';
-import { getWalletByCredential } from './api';
-import { Wallet,VerificationResult } from './interface';
+import { getWalletByCredential } from '../api';
+import { Wallet,VerificationResult } from '../interface';
+import MerkleRootStore from './MerkleRootStore.json';
 export const calculateHash = async (email: string): Promise<string> => {
     const encoder = new TextEncoder();
     const data = encoder.encode(email);
@@ -42,13 +43,15 @@ export const calculateHash = async (email: string): Promise<string> => {
 //   };
 
 export const verifyProof = async (
-    contractAddress: string,
-    proof: string,  // Changed to array of proofs
+    contractAddress: string | undefined,
+    proof: string[],  // Changed to array of proofs
     leaf: string,     // Changed to leaf instead of direct proof
 ): Promise<VerificationResult> => {
     try {
         const wallet:Wallet = await getWalletByCredential(leaf);
-
+        if(contractAddress===undefined){
+            throw new Error('Contract address not found');
+        }
         const privateKeyHex = Array.from(wallet.private_key)
             .map(b => b.toString(16).padStart(2, '0'))
             .join('');
@@ -61,13 +64,11 @@ export const verifyProof = async (
             const signerWallet = new ethers.Wallet(formattedPrivateKey, provider);
 
        
-        const abi = [
-            "function verifyMerkleProof(bytes32[] calldata proof, bytes32 leaf) external view returns (bool)"
-        ];
+        const abi =MerkleRootStore.abi;
 
         const contract = new ethers.Contract(contractAddress, abi, signerWallet);
 
-        const proofBytes32 = proof.map(p => ethers.hexlify(ethers.toUtf8Bytes(p)));
+        const proofBytes32 = proof.map((p: string) => ethers.hexlify(ethers.toUtf8Bytes(p)));
         
         const leafBytes32 = ethers.hexlify(ethers.toUtf8Bytes(leaf));
 

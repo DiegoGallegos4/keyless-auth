@@ -5,7 +5,7 @@ const initialState:UserInfoState = {
     walletAddress:'',
     merkleRoot:'',
     credential:'',
-    proof:''
+    proof:['']
 }
 
   const userInfoSlice = createSlice({
@@ -21,7 +21,7 @@ const initialState:UserInfoState = {
       setCredential(state, action:PayloadAction<string>) {
         state.credential = action.payload;
       },
-      setProof(state, action:PayloadAction<string>) {
+      setProof(state, action:PayloadAction<string[]>) {
         state.proof = action.payload;
       },
       resetAcInfo(state) {

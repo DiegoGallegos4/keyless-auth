@@ -2,22 +2,21 @@ import React, { useState } from 'react';
 import '../css/Header.css';
 import {useAppSelector } from '../redux/hooks';
 import {UserInfoState} from '../interface';
-import { verifyProof } from '../util';
+import { verifyProof } from '../utils/util';
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [txHash, setTxHash] = useState<string | undefined>(undefined);
-  const obj:UserInfoState = useAppSelector((state) => state.userInfo);
-  console.log(obj)
-  const contractAddress = "";
+  const user:UserInfoState = useAppSelector((state) => state.userInfo);
+  const contractAddress:string | undefined = process.env.CONTRACT_ADDRESS;
   const handleVerifyProof = async () => {
     // TODO: Implement proof verification logic
-    if (!obj.proof || !obj.merkleRoot) {
+    if (!user.proof || !user.merkleRoot) {
       alert('No proof available to verify');
       return;
     }
     try {
       // Add your proof verification logic here
-      const result=await verifyProof(contractAddress,obj.proof,obj.credential);
+      const result=await verifyProof(contractAddress,user.proof,user.credential);
       if(result.isValid){
         setTxHash(result.txHash);
         alert(`Proof verified successfully! View transaction on Etherscan: https://sepolia.etherscan.io/tx/${result.txHash}`);
@@ -50,7 +49,7 @@ const Header: React.FC = () => {
         <button 
             className="verify-proof-btn" 
             onClick={handleVerifyProof}
-            disabled={!obj.proof}
+            disabled={!user.proof}
           >
             Verify Proof
           </button>

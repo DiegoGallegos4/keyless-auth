@@ -4,11 +4,6 @@ export interface AuthModalProps {
     onClose: () => void;
 }
 
-export interface CredentialResponse {
-    walletAddress: string,
-    merkle_root: string,
-    proof: string
-}
 
 export interface Wallet {
     address: string;
@@ -19,12 +14,16 @@ export interface Wallet {
 export interface CredentialRequest {
     hashed_credential: string
 }
-
+export interface CredentialResponse{
+    walletAddress: string,
+    merkleRoot: string,
+    proof:string[]
+}
 export interface UserInfoState {
     walletAddress: string,
     merkleRoot: string,
     credential: string,
-    proof:string
+    proof:string[]
 }
 export interface VerificationResult {
     isValid: boolean;

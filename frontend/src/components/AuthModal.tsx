@@ -1,18 +1,16 @@
 import React, { useState} from 'react';
 import '../css/AuthModal.css';
 import { AxiosError } from 'axios';
-import { useAppDispatch,useAppSelector } from '../redux/hooks';
-import {setWalletAddress,setMerkleRoot,setCredential,setProof,resetAcInfo} from '../redux/slices/index'
+import { useAppDispatch} from '../redux/hooks';
+import {setWalletAddress,setMerkleRoot,setCredential,setProof} from '../redux/slices/index'
 import { generateCredentials,getWalletByCredential } from '../api';
-import { calculateHash } from '../util'
-import { AuthModalProps,CredentialResponse,Wallet } from '../interface';
+import { calculateHash } from '../utils/util'
+import { AuthModalProps,Wallet,CredentialResponse } from '../interface';
 
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccess, onClose }) => {
 
   const [error, setError] = useState<string>('');
-
-  const obj:CredentialResponse = useAppSelector((state) => state.userInfo);
   const dispatch = useAppDispatch();
 
   const [email, setemail] = useState<string>('');
@@ -36,7 +34,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onSuccess, onClose }) => 
 
           const newWallet:CredentialResponse=await generateCredentials(hashedEmail);
           dispatch(setWalletAddress(newWallet.walletAddress));
-          dispatch(setMerkleRoot(newWallet.merkle_root));
+          dispatch(setMerkleRoot(newWallet.merkleRoot));
+          dispatch(setCredential(hashedEmail));
           dispatch(setProof(newWallet.proof))
           onSuccess();
           return;
